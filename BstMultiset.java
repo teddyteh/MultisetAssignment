@@ -170,6 +170,10 @@ public class BstMultiset<T> extends Multiset<T>
 	public void removeAll(T item)
 	{
 		// Implement me!
+		int numberOfInstances = search(item);
+		if(numberOfInstances == 0)
+			return;
+
 //		Takes advantage of method recursion to completely remove a Node from the BST
 		rootNode = delete(rootNode, item);
 	} // end of removeAll()
@@ -184,7 +188,7 @@ public class BstMultiset<T> extends Multiset<T>
 	{
 //		If any Parent Node is null, then an error has occurred and throws an exception
 		if (parentNode == null)
-			throw new RuntimeException("cannot delete.");
+			throw new RuntimeException("Unable to delete item");
 
 //		If the value of the Parent Node is less than the value of the raw Item value,
 //		then we set the Parent Node to the left and recall the delete function
@@ -204,6 +208,7 @@ public class BstMultiset<T> extends Multiset<T>
 			if (parentNode.rightNode == null) return parentNode.leftNode;
 			else
 			{
+				parentNode.setNumberOfInstances(retrieveNumberOfInstances(parentNode.leftNode));
 //				Retrieve value from the rightmost node in the left subtree
 				parentNode.setValue(retrieveValue(parentNode.leftNode));
 //				Delete the rightmost node in the left subtree
@@ -212,6 +217,12 @@ public class BstMultiset<T> extends Multiset<T>
 		}
 		return parentNode;
 	}
+
+	/**
+	 * Method to retrieve the value of the right most Node in the tree
+	 * @param parentNode
+	 * @return
+     */
 	private T retrieveValue(Node parentNode)
 	{
 		while (parentNode.rightNode != null) parentNode = parentNode.rightNode;
@@ -219,6 +230,17 @@ public class BstMultiset<T> extends Multiset<T>
 		return parentNode.getValue();
 	}
 
+	/**
+	 * Method to retrieve the number of instances of the right most Node in the tree
+	 * @param parentNode
+	 * @return
+     */
+	private int retrieveNumberOfInstances(Node parentNode)
+	{
+		while (parentNode.rightNode != null) parentNode = parentNode.rightNode;
+
+		return parentNode.getNumberOfInstances();
+	}
 
 	public void print(PrintStream out)
 	{
@@ -250,6 +272,11 @@ public class BstMultiset<T> extends Multiset<T>
 		private Node rightNode;
 
 		public Node(){}
+
+		public boolean isLeaf()
+		{
+			return (leftNode == null && rightNode == null);
+		}
 
 		public void setValue(T value)
 		{
