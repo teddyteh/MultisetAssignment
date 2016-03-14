@@ -70,6 +70,11 @@ public class SortedLinkedListMultiset<T> extends Multiset<T>
 		Node currentNode = mHead;
 		
 		while (currentNode != null) {
+			// Stop once the element we are removing is smaller than the current node
+			if (currentNode.getElement().compareTo(item.toString()) > 0) {
+				break;
+			}
+			
 			if (item.toString().equals(currentNode.getElement())) {
 				return currentNode.getCount();
 			}
@@ -85,6 +90,11 @@ public class SortedLinkedListMultiset<T> extends Multiset<T>
 		Node currentNode = mHead;
 		
 		while (currentNode != null) {
+			// Stop once the element we are removing is smaller than the current node
+			if (currentNode.getElement().compareTo(item.toString()) > 0) {
+				break;
+			}
+			
 			// Only one item in list
 			if (currentNode.getCount() > 1 && currentNode.getElement().equals(item.toString())) {
 				currentNode.decrementCount();
@@ -92,7 +102,7 @@ public class SortedLinkedListMultiset<T> extends Multiset<T>
 				break;
 			}
 			
-			if (currentNode.getCount() == 1) {
+			if (currentNode.getCount() == 1 && currentNode.getElement().equals(item.toString())) {
 				removeAll(item);
 				
 				break;
@@ -107,6 +117,11 @@ public class SortedLinkedListMultiset<T> extends Multiset<T>
 		Node currentNode = mHead;
 		
 		while (currentNode != null) {
+			// Stop once the element we are removing is smaller than the current node
+			if (currentNode.getElement().compareTo(item.toString()) > 0) {
+				break;
+			}
+			
 			// Only one item in list
 			if (currentNode.getNext() == null && currentNode.getElement().equals(item.toString())) {
 				mHead = null;

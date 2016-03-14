@@ -70,7 +70,7 @@ public class LinkedListMultiset<T> extends Multiset<T>
 				break;
 			}
 			
-			if (currentNode.getCount() == 1) {
+			if (currentNode.getCount() == 1 && currentNode.getElement().equals(item.toString())) {
 				removeAll(item);
 				
 				break;
