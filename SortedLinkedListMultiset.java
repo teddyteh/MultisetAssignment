@@ -16,6 +16,7 @@ public class SortedLinkedListMultiset<T> extends Multiset<T>
 		
 		// List is empty
 		if (mHead == null) {
+			newNode.setNext(null);
 			mHead = newNode;
 			
 			mLength++;
@@ -52,9 +53,14 @@ public class SortedLinkedListMultiset<T> extends Multiset<T>
 					temp = temp.getNext();
 				}
 				
-				newNode.setNext(last.getNext());
-				last.setNext(newNode);
-				mLength++;		
+				// Only one element in the list
+				if (last == null) {
+					newNode.setNext(mHead);
+					mHead = newNode;
+				} else {
+					newNode.setNext(last.getNext());
+					last.setNext(newNode);
+				}
 			}
 		}
 	} // end of add()
@@ -65,8 +71,6 @@ public class SortedLinkedListMultiset<T> extends Multiset<T>
 		
 		while (currentNode != null) {
 			if (item.toString().equals(currentNode.getElement())) {
-				System.out.println(currentNode.getElement() + printDelim + currentNode.getCount());
-				
 				return currentNode.getCount();
 			}
 			

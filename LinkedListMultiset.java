@@ -49,15 +49,12 @@ public class LinkedListMultiset<T> extends Multiset<T>
 		while (currentNode != null) {
 			// Item is found
 			if (currentNode.getElement().equals(item.toString())) {
-				System.out.println(currentNode.getElement() + printDelim + currentNode.getCount());
-				
 				return currentNode.getCount();
 			}
 			currentNode = currentNode.getNext();
 		}
 		
 		// Item is not found
-		System.out.println(item.toString() + printDelim + "0");
 		return 0;
 	} // end of add()
 	
