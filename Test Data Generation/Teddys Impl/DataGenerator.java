@@ -68,18 +68,18 @@ public class DataGenerator {
 
 
 //            Print the samples
-            for(String s : samples)
-            {
-                System.out.println(s);
-            }
+//            for(String s : samples)
+//            {
+//                System.out.println(s);
+//            }
 
 //            Print the number of instances of each string
-            for(int i : sampleInstances)
-            {
-                System.out.println(i);
-            }
+//            for(int i : sampleInstances)
+//            {
+//                System.out.println(i);
+//            }
 
-            String[] outputToInFile = new String[(mNumberOfSamples * 2) + 4];
+            String[] outputToInFile = new String[(mNumberOfSamples * 3) + 4];
             String[] outputToSearch = new String[mNumberOfSamples];
             String[] outputToExpectedOut = new String[(mNumberOfSamples * 2) * 2];
 
@@ -93,18 +93,32 @@ public class DataGenerator {
 //                    output[mNumberOfSamples + i] = "RO " + samples[i];
 //                output[mNumberOfSamples + i] = "RO " + samples[i];
 
-                outputToExpectedOut[i] = samples[i] + " | " + "1";
+                outputToExpectedOut[i] = samples[i] + " | " + sampleInstances[i];
             }
 
+            for(String s : outputToInFile)
+            {
+                if(s != null) {
+                    System.out.println(s);
+                }
+            }
+            
 //            Print the whole list
             outputToInFile[(mNumberOfSamples * 2) + 1] = "P";
 //            Search for a String that exists
 //            outputToInFile[(mNumberOfSamples * 2) + 2] = "S " + samples[2];
 //            outputToSearch[0] = samples[2] + " " + sampleInstances[2];
+            int sampleToRemove = (int )(Math.random() * mNumberOfSamples + 0);
+            
+           // Shift elements down by one then insert "RO sample"
+            for(int i = sampleToRemove; i < mNumberOfSamples; i++) 
+            {
+            	String temp = outputToInFile[i+1];
+            	outputToInFile[i+1] = temp;
+            }
+            outputToInFile[sampleToRemove] = "RO " + samples[sampleToRemove];
 
-
-
-            System.out.println("In File \n");
+            System.out.println("\nIn File");
 //            Print the output array that will go into the input file
             for(String s : outputToInFile)
             {
@@ -114,7 +128,7 @@ public class DataGenerator {
                 }
             }
 
-            System.out.println("Expected Output File \n");
+            System.out.println("\nExpected Output File");
 //            To output to Expected Out file
             for(String s : outputToExpectedOut)
             {
@@ -124,7 +138,7 @@ public class DataGenerator {
                 }
             }
 
-            System.out.println("Search file \n");
+            System.out.println(" \nSearch file");
 //            Print the Search file
             for(String s : outputToSearch)
             {
