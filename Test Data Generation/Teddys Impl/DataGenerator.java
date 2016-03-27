@@ -66,34 +66,18 @@ public class DataGenerator {
                 sampleInstances[i] = numberOfInstances;
             }
 
-
-//            Print the samples
-//            for(String s : samples)
-//            {
-//                System.out.println(s);
-//            }
-
-//            Print the number of instances of each string
-//            for(int i : sampleInstances)
-//            {
-//                System.out.println(i);
-//            }
-
             String[] outputToInFile = new String[50];
             String[] outputToSearch = new String[mNumberOfSamples];
             String[] outputToExpectedOut = new String[(mNumberOfSamples * 2) * 2];
 
+            // Generate array to be used for expected output file	
             for(int i = 0; i < mNumberOfSamples; i++)
             {
-//                Add the current sample to the output to the in file
+                //  Add the current sample to the output to the in file
                 outputToInFile[i] = "A " + samples[i];
-//                If there is more than one instance of an input,
-//                remove one instance of it
-//                if(sampleInstances[i] > 1)
-//                    output[mNumberOfSamples + i] = "RO " + samples[i];
-//                output[mNumberOfSamples + i] = "RO " + samples[i];
-
-                outputToExpectedOut[i] = samples[i] + " | " + sampleInstances[i];
+                // Only print one instance of each string
+                if(!alreadyInArray(outputToExpectedOut, samples[i], sampleInstances[i]))
+                	outputToExpectedOut[i] = samples[i] + " | " + sampleInstances[i];
             }
 
             for(String s : outputToInFile)
@@ -116,7 +100,7 @@ public class DataGenerator {
             // Shift elements down by one then insert "RO sample"
             System.arraycopy(outputToInFile, sampleToRemove+1, tempArray, 0, mNumberOfSamples);
             
-            for(int i = sampleToRemove+2, j = 0; i < 8; i++, j++) {
+            for(int i = sampleToRemove+2, j = 0; i < 20; i++, j++) {
                     outputToInFile[i] = tempArray[j];
             }
             outputToInFile[sampleToRemove+1] = "RO " + samples[sampleToRemove];
@@ -161,6 +145,24 @@ public class DataGenerator {
 
     }
 
+    private static boolean alreadyInArray(String[] array, String string, int count) {
+		if (array[0] == null)
+			return false;
+
+		for (int j = 0; j < array.length; j++)
+        {
+			if (array[j] == null)
+				break;
+			
+        	if (array[j].equals(string + " | " + count))
+			{
+        		return true;
+			}
+        }
+    	
+    	return false;
+    }
+    
     private String[] generateStringsWithReplacement() {
         String[] samples = new String[mNumberOfSamples];
 
