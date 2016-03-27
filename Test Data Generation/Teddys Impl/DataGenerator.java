@@ -111,8 +111,14 @@ public class DataGenerator {
             
             // Print RO line
             outputToInFile[sampleToRemove+1] = "RO " + samples[sampleToRemove];
-            // Actually delete sample
-            outputToExpectedOut[sampleToRemove] = null;
+            // Delete all instances of the sample
+            for (int i = 0; i < mNumberOfSamples; i++) 
+            {
+            	if (outputToInFile[i] != null && outputToInFile[i].equals("A " + samples[sampleToRemove]))
+            	{
+            		outputToExpectedOut[i] = null;
+            	}
+            }
 
             
             
