@@ -17,20 +17,26 @@ public class DataGenerator {
         assert(args.length == 3);
 
         DataGenerator generator = new DataGenerator();
+        
+        long startTime = System.nanoTime();
 
         mLength = Integer.valueOf(args[0]);
         mNumberOfSamples = Integer.valueOf(args[1]);
-        // Allow duplications or not
+        // Allow duplications
 		String samplingType = args[2];
+		
+		String[] outputToInFile = new String[(mNumberOfSamples * 2) + 4];
+        String[] outputToSearch = new String[mNumberOfSamples];
+        String[] outputToExpectedOut = new String[(mNumberOfSamples * 2) * 2];
 
         try {
-
             PrintStream inStream = new PrintStream("TestString1.in", "UTF-8");
             PrintStream expStream = new PrintStream("TestString1.exp", "UTF-8");
             PrintStream searchStream = new PrintStream("TestString1.search.exp", "UTF-8");
 
             String[] samples = null;
             
+            // Generate mNumberOfSamples of samples
             switch (samplingType) {
 	            case "with":
 	            	samples = generator.generateStringsWithReplacement();
@@ -52,6 +58,9 @@ public class DataGenerator {
 	            	break;
             }
             
+            
+            
+            // Count the number of instances for each sample 
             int[] sampleInstances = new int[mNumberOfSamples];
             for(int i = 0; i < mNumberOfSamples; i++)
             {
@@ -66,47 +75,48 @@ public class DataGenerator {
                 sampleInstances[i] = numberOfInstances;
             }
 
-            String[] outputToInFile = new String[50];
-            String[] outputToSearch = new String[mNumberOfSamples];
-            String[] outputToExpectedOut = new String[(mNumberOfSamples * 2) * 2];
-
-            // Generate array to be used for expected output file	
+            
+            
+            // Generate array of strings to be used for expected output file
             for(int i = 0; i < mNumberOfSamples; i++)
             {
                 //  Add the current sample to the output to the in file
                 outputToInFile[i] = "A " + samples[i];
-                // Only print one instance of each string
+                
+                // Only print one instance of each string (if there is more than one)
                 if(!alreadyInArray(outputToExpectedOut, samples[i], sampleInstances[i]))
                 	outputToExpectedOut[i] = samples[i] + " | " + sampleInstances[i];
             }
-
-            for(String s : outputToInFile)
-            {
-                if(s != null) {
-                    System.out.println(s);
-                }
-            }
-            
-//            Print the whole list
+            // Add a "P" line at the end
             outputToInFile[(mNumberOfSamples * 2) + 1] = "P";
-//            Search for a String that exists
-//            outputToInFile[(mNumberOfSamples * 2) + 2] = "S " + samples[2];
-//            outputToSearch[0] = samples[2] + " " + sampleInstances[2];
+
             
-            // Remove a random element
+            
+            // Search for a String that exists
+            // outputToInFile[(mNumberOfSamples * 2) + 2] = "S " + samples[2];
+            // outputToSearch[0] = samples[2] + " " + sampleInstances[2];
+            
+            
+            
+            // Remove a random sample
             int sampleToRemove = (int )(Math.random() * mNumberOfSamples + 0);
             String[] tempArray = new String[(mNumberOfSamples * 3) + 4];
             
-            // Shift elements down by one then insert "RO sample"
+            // Shift samples down by one then insert "RO sample"
             System.arraycopy(outputToInFile, sampleToRemove+1, tempArray, 0, mNumberOfSamples);
             
             for(int i = sampleToRemove+2, j = 0; i < 20; i++, j++) {
                     outputToInFile[i] = tempArray[j];
             }
-            outputToInFile[sampleToRemove+1] = "RO " + samples[sampleToRemove];
             
-            System.out.println("\nIn File");
-//            Print the output array that will go into the input file
+            // Print RO line
+            outputToInFile[sampleToRemove+1] = "RO " + samples[sampleToRemove];
+            // Actually delete sample
+            outputToExpectedOut[sampleToRemove] = null;
+
+            
+            
+            System.out.println("In File");
             for(String s : outputToInFile)
             {
                 if(s != null) {
@@ -116,7 +126,6 @@ public class DataGenerator {
             }
 
             System.out.println("\nExpected Output File");
-//            To output to Expected Out file
             for(String s : outputToExpectedOut)
             {
                 if(s != null) {
@@ -126,7 +135,6 @@ public class DataGenerator {
             }
 
             System.out.println(" \nSearch file");
-//            Print the Search file
             for(String s : outputToSearch)
             {
                 if(s != null)
@@ -135,6 +143,9 @@ public class DataGenerator {
 
                 }
             }
+            
+            long endTime = System.nanoTime();
+            System.out.println("time taken = " + ((double)(endTime - startTime)) / Math.pow(10, 9) + " sec");
 
         } catch (FileNotFoundException e) {
             e.printStackTrace();
