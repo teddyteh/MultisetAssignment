@@ -75,9 +75,7 @@ public class DataGenerator {
                 sampleInstances[i] = numberOfInstances;
             }
 
-//            Put a Random search in the output file
-            Random randomSearch = new Random();
-            int randomIndexToSearch = randomSearch.nextInt(mNumberOfSamples - 1);
+            
             
             // Generate array of strings to be used for expected output file
             for(int i = 0; i < mNumberOfSamples; i++)
@@ -86,39 +84,7 @@ public class DataGenerator {
                 outputToInFile[i] = "A " + samples[i];
                 
                 // Only print one instance of each string (if there is more than one)
-                if(!alreadyInArray(outputToExpectedOut, samples[i], sampleInstances[i]))
-                	outputToExpectedOut[i] = samples[i] + " | " + sampleInstances[i];
-
-//                Place a search in the input file, then finish adding the rest of the values in the samples array
-//                It searches for the last sample inserted
-                if(i == randomIndexToSearch)
-                {
-//                    Add the Search term to the input file
-                    outputToInFile[i +1] = "S " + samples[i];
-
-                    int instancesOfSearchIndex = 0;
-
-                    for(int k = 0; k < i + 1; k++)
-                    {
-                        if(samples[k] == samples[i])
-                            instancesOfSearchIndex++;
-                    }
-
-//                    Add the expected output to the search output file from the search
-                    outputToSearch[0] = samples[i] + " " + instancesOfSearchIndex;
-
-//                    Finish adding the rest of the samples to the
-                    for(int j = i + 1; j < mNumberOfSamples; j++)
-                    {
-                        outputToInFile[j + 1] = "A " + samples[j];
-
-                        // Only print one instance of each string (if there is more than one)
-                        if(!alreadyInArray(outputToExpectedOut, samples[j], sampleInstances[j]))
-                            outputToExpectedOut[j] = samples[j] + " | " + sampleInstances[j];
-                    }
-
-                    break;
-                }
+                outputToExpectedOut[i] = samples[i] + " | " + sampleInstances[i];
             }
             // Add a "P" line at the end
             outputToInFile[(mNumberOfSamples * 2) + 1] = "P";
@@ -132,7 +98,7 @@ public class DataGenerator {
             
             
             // Remove a random sample
-            int sampleToRemove = (int )(Math.random() * mNumberOfSamples + 0);
+            int sampleToRemove = (int )(Math.random() * mNumberOfSamples + 0);;
             String[] tempArray = new String[(mNumberOfSamples * 3) + 4];
             
             // Shift samples down by one then insert "RO sample"
@@ -144,25 +110,56 @@ public class DataGenerator {
             
             // Print RO line
             outputToInFile[sampleToRemove+1] = "RO " + samples[sampleToRemove];
-
-//            Remove one sample instance from the expected output
-            for(int i = 0; i < outputToInFile.length; i++)
-            {
-                if(samples[sampleToRemove].equals(samples[i]))
-                {
-                    outputToInFile[i] = null;
-                    break;
-                }
-            }
-
-            // Delete all instances of the sample
+            // Delete all instances of sample to be deleted before RO line
             for (int i = 0; i < mNumberOfSamples; i++) 
             {
             	if (outputToInFile[i] != null && outputToInFile[i].equals("A " + samples[sampleToRemove]))
             	{
             		outputToExpectedOut[i] = null;
+            		
+            		break;
             	}
             }
+            // Reset count of possible new occurrences of deleted sample
+            int count = 0;
+			for (int j = sampleToRemove + 1; j < mNumberOfSamples; j++)
+    		{
+    			if (samples[j] != null && samples[j].equals(samples[sampleToRemove]))
+    			{
+    				sampleInstances[j] = ++count;
+    				outputToExpectedOut[j] = samples[j] + " | " + sampleInstances[j];
+    			}
+    		}
+
+
+
+            //            Put a Random search in the output file
+            Random randomSearch = new Random();
+            int randomIndexToSearch = randomSearch.nextInt(mNumberOfSamples - 1);
+            String[] tempOutputArray = new String[outputToInFile.length];
+
+            for(int i = 0; i < outputToInFile.length; i++)
+            {
+                if(randomIndexToSearch == i)
+                {
+                    tempOutputArray[i] = outputToInFile[i];
+                    tempOutputArray[i] = "S " + samples[i];
+
+                    for(int j = i; j < outputToInFile.length - 1; j++)
+                    {
+//                        if(outputToInFile[j] == null)
+//                            continue;
+                            tempOutputArray[j + 1] = outputToInFile[j];
+                    }
+                    break;
+                }
+
+                tempOutputArray[i] = outputToInFile[i];
+            }
+
+            outputToInFile = tempOutputArray;
+
+            addSearchToSearchExpFileArray(outputToInFile, outputToSearch, samples[randomIndexToSearch]);
 
             
             
@@ -176,12 +173,16 @@ public class DataGenerator {
             }
 
             System.out.println("\nExpected Output File");
-            for(String s : outputToExpectedOut)
+            for (int i = 0; i < mNumberOfSamples; i++)
             {
-                if(s != null) {
-                    System.out.println(s);
-                    expStream.println(s);
-                }
+            	if (outputToExpectedOut[i] != null)
+            	{
+            		if (!alreadyInOutput(outputToExpectedOut, samples[i], sampleInstances[i], i))
+            		{
+                		System.out.println(outputToExpectedOut[i]);
+                        expStream.println(outputToExpectedOut[i]);            			
+            		}
+            	}
             }
 
             System.out.println(" \nSearch file");
@@ -190,7 +191,7 @@ public class DataGenerator {
                 if(s != null)
                 {
                     System.out.println(s);
-                    searchStream.println(s);
+
                 }
             }
             
@@ -206,16 +207,92 @@ public class DataGenerator {
 
     }
 
-    private static boolean alreadyInArray(String[] array, String string, int count) {
-		if (array[0] == null)
-			return false;
+    private static void addSearchToSearchExpFileArray(String[] outputToInFile, String[] outputToSearch, String sample) {
+//        Number of instances counter
+        int numberOfInstancesOfSampleBeforeSearch = 0;
+//        A string array to keep track of the operations that are performed on the selected object, in order
+        String[] sequenceOfOpsOnSample = new String[outputToInFile.length];
 
-		for (int j = 0; j < array.length; j++)
+//        Loop through the output to in file array until the search function is found,
+//        then go back the other way to find the operations that happen to it
+        for(int i = 0; i < outputToInFile.length; i++)
         {
-			if (array[j] == null)
-				break;
-			
-        	if (array[j].equals(string + " | " + count))
+//            Checker for null
+            if(outputToInFile[i] == null)
+                continue;
+
+//            if we found the Search statement for the sample we want, now go back the other way and get the operations
+            if(outputToInFile[i].equals("S " + sample))
+            {
+                for(int j = i; j > -1; j--)
+                {
+                    if(outputToInFile[j].equals("A " + sample))
+                    {
+                        for(int k = 0; k < sequenceOfOpsOnSample.length; k++)
+                        {
+                            if(sequenceOfOpsOnSample[k] == null)
+                            {
+                                sequenceOfOpsOnSample[k] = "A";
+                                break;
+                            }
+                        }
+                    }
+
+                    else if(outputToInFile[j].equals("RO " + sample))
+                    {
+                        for(int k = 0; k < sequenceOfOpsOnSample.length; k++)
+                        {
+                            if(sequenceOfOpsOnSample[k] == null)
+                            {
+                                sequenceOfOpsOnSample[k] = "RO";
+                                break;
+                            }
+                        }
+                    }
+
+                    else if(outputToInFile[j].equals("RA " + sample))
+                    {
+                        for(int k = 0; k < sequenceOfOpsOnSample.length; k++)
+                        {
+                            if(sequenceOfOpsOnSample[k] == null)
+                            {
+                                sequenceOfOpsOnSample[k] = "RA";
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                for(int j = sequenceOfOpsOnSample.length - 1; j > -1; j--)
+                {
+                    if(sequenceOfOpsOnSample[j] == null)
+                        continue;
+
+                    if(sequenceOfOpsOnSample[j].equals("A"))
+                        numberOfInstancesOfSampleBeforeSearch++;
+                    else if(sequenceOfOpsOnSample[j].equals("RO"))
+                    {
+                        if(numberOfInstancesOfSampleBeforeSearch > 0)
+                            numberOfInstancesOfSampleBeforeSearch--;
+                        else
+                            numberOfInstancesOfSampleBeforeSearch = 0;
+                    }
+                    else if(sequenceOfOpsOnSample[j].equals("RA"))
+                        numberOfInstancesOfSampleBeforeSearch = 0;
+                }
+
+//                Add to the outputToSearch file array
+                outputToSearch[0] = sample + " " + numberOfInstancesOfSampleBeforeSearch;
+                break;
+            }
+
+        }
+    }
+
+    private static boolean alreadyInOutput(String[] array, String string, int count, int pos) {
+		for (int i = 0; i < pos; i++)
+        {
+        	if (array[i] != null && array[i].equals(string + " | " + count))
 			{
         		return true;
 			}
