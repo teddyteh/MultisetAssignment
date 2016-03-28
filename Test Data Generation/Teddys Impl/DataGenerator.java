@@ -84,8 +84,7 @@ public class DataGenerator {
                 outputToInFile[i] = "A " + samples[i];
                 
                 // Only print one instance of each string (if there is more than one)
-                if(!alreadyInArray(outputToExpectedOut, samples[i], sampleInstances[i]))
-                	outputToExpectedOut[i] = samples[i] + " | " + sampleInstances[i];
+                outputToExpectedOut[i] = samples[i] + " | " + sampleInstances[i];
             }
             // Add a "P" line at the end
             outputToInFile[(mNumberOfSamples * 2) + 1] = "P";
@@ -99,7 +98,7 @@ public class DataGenerator {
             
             
             // Remove a random sample
-            int sampleToRemove = (int )(Math.random() * mNumberOfSamples + 0);
+            int sampleToRemove = 2;
             String[] tempArray = new String[(mNumberOfSamples * 3) + 4];
             
             // Shift samples down by one then insert "RO sample"
@@ -111,14 +110,26 @@ public class DataGenerator {
             
             // Print RO line
             outputToInFile[sampleToRemove+1] = "RO " + samples[sampleToRemove];
-            // Delete all instances of the sample
+            // Delete all instances of sample to be deleted before RO line
             for (int i = 0; i < mNumberOfSamples; i++) 
             {
             	if (outputToInFile[i] != null && outputToInFile[i].equals("A " + samples[sampleToRemove]))
             	{
             		outputToExpectedOut[i] = null;
+            		
+            		break;
             	}
             }
+            // Reset count of possible new occurrences of deleted sample
+            int count = 0;
+			for (int j = sampleToRemove + 1; j < mNumberOfSamples; j++)
+    		{
+    			if (samples[j] != null && samples[j].equals(samples[sampleToRemove]))
+    			{
+    				sampleInstances[j] = ++count;
+    				outputToExpectedOut[j] = samples[j] + " | " + sampleInstances[j];
+    			}
+    		}
 
             
             
@@ -132,12 +143,16 @@ public class DataGenerator {
             }
 
             System.out.println("\nExpected Output File");
-            for(String s : outputToExpectedOut)
+            for (int i = 0; i < mNumberOfSamples; i++)
             {
-                if(s != null) {
-                    System.out.println(s);
-                    expStream.println(s);
-                }
+            	if (outputToExpectedOut[i] != null)
+            	{
+            		if (!alreadyInOutput(outputToExpectedOut, samples[i], sampleInstances[i], i))
+            		{
+                		System.out.println(outputToExpectedOut[i]);
+                        expStream.println(outputToExpectedOut[i]);            			
+            		}
+            	}
             }
 
             System.out.println(" \nSearch file");
@@ -162,16 +177,10 @@ public class DataGenerator {
 
     }
 
-    private static boolean alreadyInArray(String[] array, String string, int count) {
-		if (array[0] == null)
-			return false;
-
-		for (int j = 0; j < array.length; j++)
+    private static boolean alreadyInOutput(String[] array, String string, int count, int pos) {
+		for (int i = 0; i < pos; i++)
         {
-			if (array[j] == null)
-				break;
-			
-        	if (array[j].equals(string + " | " + count))
+        	if (array[i] != null && array[i].equals(string + " | " + count))
 			{
         		return true;
 			}
