@@ -1,6 +1,7 @@
 import java.io.FileNotFoundException;
 import java.io.PrintStream;
 import java.io.UnsupportedEncodingException;
+import java.util.Arrays;
 import java.util.Random;
 
 /**
@@ -13,22 +14,53 @@ public class DataGenerator {
 
     public static void main(String[] args)
     {
-        assert(args.length == 2);
+        assert(args.length == 3);
 
         DataGenerator generator = new DataGenerator();
+        
+        long startTime = System.nanoTime();
 
-        mNumberOfSamples = Integer.valueOf(args[1]);
         mLength = Integer.valueOf(args[0]);
-
+        mNumberOfSamples = Integer.valueOf(args[1]);
+        // Allow duplications
+		String samplingType = args[2];
+		
+		String[] outputToInFile = new String[(mNumberOfSamples * 2) + 4];
+        String[] outputToSearch = new String[mNumberOfSamples];
+        String[] outputToExpectedOut = new String[(mNumberOfSamples * 2) * 2];
 
         try {
-
             PrintStream inStream = new PrintStream("TestString1.in", "UTF-8");
             PrintStream expStream = new PrintStream("TestString1.exp", "UTF-8");
             PrintStream searchStream = new PrintStream("TestString1.search.exp", "UTF-8");
 
-
-            String[] samples = generator.generateRandomStrings();
+            String[] samples = null;
+            
+            // Generate mNumberOfSamples of samples
+            switch (samplingType) {
+	            case "with":
+	            	samples = generator.generateStringsWithReplacement();
+	            	
+	            	break;
+	            case "without":
+	            	if (mLength == 1 && mNumberOfSamples > 26)
+	            	{
+	            		System.err.println("Number of samples cannot be more than 26 when the sample size is 1 character long.");
+		            	System.exit(0);
+	            	}
+	            	samples = generator.generateStringsWithOutReplacement();
+	            	
+	            	break;
+	            default:
+	            	System.err.println(samplingType + " is an unknown sampling type. Now exiting..");
+	            	System.exit(0);
+	            	
+	            	break;
+            }
+            
+            
+            
+            // Count the number of instances for each sample 
             int[] sampleInstances = new int[mNumberOfSamples];
             for(int i = 0; i < mNumberOfSamples; i++)
             {
@@ -43,46 +75,98 @@ public class DataGenerator {
                 sampleInstances[i] = numberOfInstances;
             }
 
-
-//            Print the samples
-            for(String s : samples)
-            {
-                System.out.println(s);
-            }
-
-//            Print the number of instances of each string
-            for(int i : sampleInstances)
-            {
-                System.out.println(i);
-            }
-
-            String[] outputToInFile = new String[(mNumberOfSamples * 2) + 4];
-            String[] outputToSearch = new String[mNumberOfSamples];
-            String[] outputToExpectedOut = new String[(mNumberOfSamples * 2) * 2];
-
+//            Put a Random search in the output file
+            Random randomSearch = new Random();
+            int randomIndexToSearch = randomSearch.nextInt(mNumberOfSamples - 1);
+            
+            // Generate array of strings to be used for expected output file
             for(int i = 0; i < mNumberOfSamples; i++)
             {
-//                Add the current sample to the output to the in file
+                //  Add the current sample to the output to the in file
                 outputToInFile[i] = "A " + samples[i];
-//                If there is more than one instance of an input,
-//                remove one instance of it
-//                if(sampleInstances[i] > 1)
-//                    output[mNumberOfSamples + i] = "RO " + samples[i];
-//                output[mNumberOfSamples + i] = "RO " + samples[i];
+                
+                // Only print one instance of each string (if there is more than one)
+                if(!alreadyInArray(outputToExpectedOut, samples[i], sampleInstances[i]))
+                	outputToExpectedOut[i] = samples[i] + " | " + sampleInstances[i];
 
-                outputToExpectedOut[i] = samples[i] + " | " + "1";
+//                Place a search in the input file, then finish adding the rest of the values in the samples array
+//                It searches for the last sample inserted
+                if(i == randomIndexToSearch)
+                {
+//                    Add the Search term to the input file
+                    outputToInFile[i +1] = "S " + samples[i];
+
+                    int instancesOfSearchIndex = 0;
+
+                    for(int k = 0; k < i + 1; k++)
+                    {
+                        if(samples[k] == samples[i])
+                            instancesOfSearchIndex++;
+                    }
+
+//                    Add the expected output to the search output file from the search
+                    outputToSearch[0] = samples[i] + " " + instancesOfSearchIndex;
+
+//                    Finish adding the rest of the samples to the
+                    for(int j = i + 1; j < mNumberOfSamples; j++)
+                    {
+                        outputToInFile[j + 1] = "A " + samples[j];
+
+                        // Only print one instance of each string (if there is more than one)
+                        if(!alreadyInArray(outputToExpectedOut, samples[j], sampleInstances[j]))
+                            outputToExpectedOut[j] = samples[j] + " | " + sampleInstances[j];
+                    }
+
+                    break;
+                }
+            }
+            // Add a "P" line at the end
+            outputToInFile[(mNumberOfSamples * 2) + 1] = "P";
+
+            
+            
+            // Search for a String that exists
+            // outputToInFile[(mNumberOfSamples * 2) + 2] = "S " + samples[2];
+            // outputToSearch[0] = samples[2] + " " + sampleInstances[2];
+            
+            
+            
+            // Remove a random sample
+            int sampleToRemove = (int )(Math.random() * mNumberOfSamples + 0);
+            String[] tempArray = new String[(mNumberOfSamples * 3) + 4];
+            
+            // Shift samples down by one then insert "RO sample"
+            System.arraycopy(outputToInFile, sampleToRemove+1, tempArray, 0, mNumberOfSamples);
+            
+            for(int i = sampleToRemove+2, j = 0; i < 20; i++, j++) {
+                    outputToInFile[i] = tempArray[j];
+            }
+            
+            // Print RO line
+            outputToInFile[sampleToRemove+1] = "RO " + samples[sampleToRemove];
+
+//            Remove one sample instance from the expected output
+            for(int i = 0; i < outputToInFile.length; i++)
+            {
+                if(samples[sampleToRemove].equals(samples[i]))
+                {
+                    outputToInFile[i] = null;
+                    break;
+                }
             }
 
-//            Print the whole list
-            outputToInFile[(mNumberOfSamples * 2) + 1] = "P";
-//            Search for a String that exists
-//            outputToInFile[(mNumberOfSamples * 2) + 2] = "S " + samples[2];
-//            outputToSearch[0] = samples[2] + " " + sampleInstances[2];
+            // Delete all instances of the sample
+            for (int i = 0; i < mNumberOfSamples; i++) 
+            {
+            	if (outputToInFile[i] != null && outputToInFile[i].equals("A " + samples[sampleToRemove]))
+            	{
+            		outputToExpectedOut[i] = null;
+            	}
+            }
 
-
-
-            System.out.println("In File \n");
-//            Print the output array that will go into the input file
+            
+            
+            System.out.println("In File");
             for(String s : outputToInFile)
             {
                 if(s != null) {
@@ -91,8 +175,7 @@ public class DataGenerator {
                 }
             }
 
-            System.out.println("Expected Output File \n");
-//            To output to Expected Out file
+            System.out.println("\nExpected Output File");
             for(String s : outputToExpectedOut)
             {
                 if(s != null) {
@@ -101,16 +184,18 @@ public class DataGenerator {
                 }
             }
 
-            System.out.println("Search file \n");
-//            Print the Search file
+            System.out.println(" \nSearch file");
             for(String s : outputToSearch)
             {
                 if(s != null)
                 {
                     System.out.println(s);
-
+                    searchStream.println(s);
                 }
             }
+            
+            long endTime = System.nanoTime();
+            System.out.println("time taken = " + ((double)(endTime - startTime)) / Math.pow(10, 9) + " sec");
 
         } catch (FileNotFoundException e) {
             e.printStackTrace();
@@ -121,36 +206,65 @@ public class DataGenerator {
 
     }
 
-    private String[] generateRandomStrings() throws FileNotFoundException, UnsupportedEncodingException {
+    private static boolean alreadyInArray(String[] array, String string, int count) {
+		if (array[0] == null)
+			return false;
+
+		for (int j = 0; j < array.length; j++)
+        {
+			if (array[j] == null)
+				break;
+			
+        	if (array[j].equals(string + " | " + count))
+			{
+        		return true;
+			}
+        }
+    	
+    	return false;
+    }
+    
+    private String[] generateStringsWithReplacement() {
         String[] samples = new String[mNumberOfSamples];
-
-        PrintStream stream = new PrintStream("TestString1.in", "UTF-8");
-        PrintStream expStream = new PrintStream("TestString1.exp", "UTF-8");
-        Random r = new Random();
-        char nextChar = (char)(r.nextInt(26) + 'a');
-
 
         for(int i = 0; i < mNumberOfSamples; i++)
         {
-            StringBuilder stringBuilder = new StringBuilder();
-            for (int j = 0; j < mLength; j++)
-            {
-                stringBuilder.append(nextChar);
-//                stream.print(nextChar);
-//                stringBuilder.append(nextChar);
-//                samples[i].concat(stringBuilder.toString());
-                nextChar = (char)(r.nextInt(26) + 'a');
-            }
-            samples[i] = stringBuilder.toString();
-//            if(i % 5 == 0 && i != mNumberOfSamples)
-//            {
-//                samples[i + 1] = stringBuilder.toString();
-//                i++;
-//            }
+        	String sample = generateRandomString();
 
-//            stream.println();
+        	samples[i] = sample;
         }
-//        stream.println("P");
+
         return samples;
+    }
+    
+    private String[] generateStringsWithOutReplacement() {
+        String[] samples = new String[mNumberOfSamples];
+
+        for(int i = 0; i < mNumberOfSamples; i++)
+        {
+        	String sample = generateRandomString();
+
+        	while (Arrays.asList(samples).contains(sample))
+        	{
+        		sample = generateRandomString();
+        	}
+        	samples[i] = sample;
+        }
+
+        return samples;
+    }
+        
+    private String generateRandomString() {
+    	Random r = new Random();
+        char nextChar = (char)(r.nextInt(26) + 'a');
+        
+    	StringBuilder stringBuilder = new StringBuilder();
+        for (int j = 0; j < mLength; j++)
+        {
+            stringBuilder.append(nextChar);
+            nextChar = (char)(r.nextInt(26) + 'a');
+        }
+
+        return stringBuilder.toString();
     }
 }
