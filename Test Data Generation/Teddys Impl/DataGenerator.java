@@ -120,17 +120,22 @@ public class DataGenerator {
             		break;
             	}
             }
-            // Reset count of possible new occurrences of deleted sample
-            int count = 0;
-			for (int j = sampleToRemove + 1; j < mNumberOfSamples; j++)
+            // Reset count for deleted sample
+			for (int j = 0; j < mNumberOfSamples; j++)
     		{
     			if (samples[j] != null && samples[j].equals(samples[sampleToRemove]))
     			{
-    				sampleInstances[j] = ++count;
+    				sampleInstances[j] = sampleInstances[j] - 1;
     				outputToExpectedOut[j] = samples[j] + " | " + sampleInstances[j];
+    				
+    				if (sampleInstances[j] == 0) 
+    				{
+    					outputToExpectedOut[j] = null;
+    				}
     			}
     		}
-
+			samples[sampleToRemove] = null;
+			
             
             
             System.out.println("In File");
