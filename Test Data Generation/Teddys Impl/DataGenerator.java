@@ -98,7 +98,7 @@ public class DataGenerator {
             
             
             // Remove a random sample
-            int sampleToRemove = 2;
+            int sampleToRemove = (int )(Math.random() * mNumberOfSamples + 0);;
             String[] tempArray = new String[(mNumberOfSamples * 3) + 4];
             
             // Shift samples down by one then insert "RO sample"
