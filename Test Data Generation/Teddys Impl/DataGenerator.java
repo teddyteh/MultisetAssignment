@@ -105,6 +105,10 @@ public class DataGenerator {
             	int sampleToRemove = (int )(Math.random() * mNumberOfSamples + 0);
             	int randomLine = (int )(Math.random() * mNumberOfSamples + 0);
             	
+            	if (samples[sampleToRemove] == null)
+            	{
+            		continue;
+            	}
             	
             	String[] tempArray = new String[(mNumberOfSamples * 3) + 4];
                 
@@ -117,11 +121,53 @@ public class DataGenerator {
                 outputToInFile[randomLine+1] = "RO " + samples[sampleToRemove];
                 
                 // Reset count for deleted sample
-    			for (int j = 0; j < randomLine; j++)
+    			for (int j = 0; j < randomLine+1; j++)
         		{
         			if (samples[j] != null && samples[j].equals(samples[sampleToRemove]))
         			{
         				sampleInstances[j] = sampleInstances[j] - 1;
+        				outputToExpectedOut[j] = samples[j] + " | " + sampleInstances[j];
+        				
+        				if (sampleInstances[j] == 0) 
+        				{
+        					outputToExpectedOut[j] = null;
+        					
+        					break;
+        				}
+        			}
+        		}
+    			
+    			// Delete sample from our model
+    			samples[sampleToRemove] = null;
+            }
+            
+            // Random RA lines as well
+            for (int samplesDeleted = 0; samplesDeleted < mNumberOfSamplesToDelete/3; samplesDeleted++)
+            {
+            	int sampleToRemove = (int )(Math.random() * mNumberOfSamples + 0);
+            	int randomLine = (int )(Math.random() * mNumberOfSamples + 0);
+            	
+            	if (samples[sampleToRemove] == null)
+            	{
+            		continue;
+            	}
+            	
+            	String[] tempArray = new String[(mNumberOfSamples * 3) + 4];
+                
+                // Shift samples down by one then insert "RO sample"
+                System.arraycopy(outputToInFile, randomLine+1, tempArray, 0, mNumberOfSamples);
+                for(int i = randomLine+2, j = 0; i < outputToInFile.length; i++, j++) {
+                        outputToInFile[i] = tempArray[j];
+                }
+                // Print RO line
+                outputToInFile[randomLine+1] = "RA " + samples[sampleToRemove];
+                
+                // Reset count for deleted sample
+    			for (int j = 0; j < randomLine+1; j++)
+        		{
+        			if (samples[j] != null && samples[j].equals(samples[sampleToRemove]))
+        			{
+        				sampleInstances[j] = 0;
         				outputToExpectedOut[j] = samples[j] + " | " + sampleInstances[j];
         				
         				if (sampleInstances[j] == 0) 
@@ -134,7 +180,6 @@ public class DataGenerator {
     			// Delete sample from our model
     			samples[sampleToRemove] = null;
             }
-            
             
             
             
