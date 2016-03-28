@@ -11,10 +11,12 @@ public class DataGenerator {
 
     private static int mNumberOfSamples;
     private static int mLength;
-
+    private static String mSamplingType;
+    private static int mNumberOfSamplesToDelete;
+    
     public static void main(String[] args)
     {
-        assert(args.length == 3);
+        assert(args.length == 4);
 
         DataGenerator generator = new DataGenerator();
         
@@ -22,8 +24,8 @@ public class DataGenerator {
 
         mLength = Integer.valueOf(args[0]);
         mNumberOfSamples = Integer.valueOf(args[1]);
-        // Allow duplications
-		String samplingType = args[2];
+        mSamplingType = args[2];
+        mNumberOfSamplesToDelete = Integer.valueOf(args[3]);
 		
 		String[] outputToInFile = new String[(mNumberOfSamples * 2) + 4];
         String[] outputToSearch = new String[mNumberOfSamples];
@@ -37,7 +39,7 @@ public class DataGenerator {
             String[] samples = null;
             
             // Generate mNumberOfSamples of samples
-            switch (samplingType) {
+            switch (mSamplingType) {
 	            case "with":
 	            	samples = generator.generateStringsWithReplacement();
 	            	
@@ -52,7 +54,7 @@ public class DataGenerator {
 	            	
 	            	break;
 	            default:
-	            	System.err.println(samplingType + " is an unknown sampling type. Now exiting..");
+	            	System.err.println(mSamplingType + " is an unknown sampling type. Now exiting..");
 	            	System.exit(0);
 	            	
 	            	break;
@@ -86,8 +88,7 @@ public class DataGenerator {
                 // Only print one instance of each string (if there is more than one)
                 outputToExpectedOut[i] = samples[i] + " | " + sampleInstances[i];
             }
-            // Add a "P" line at the end
-            outputToInFile[(mNumberOfSamples * 2) + 1] = "P";
+
 
             
             
@@ -97,47 +98,101 @@ public class DataGenerator {
             
             
             
-            // Remove a random sample
-            int sampleToRemove = (int )(Math.random() * mNumberOfSamples + 0);;
-            String[] tempArray = new String[(mNumberOfSamples * 3) + 4];
-            
-            // Shift samples down by one then insert "RO sample"
-            System.arraycopy(outputToInFile, sampleToRemove+1, tempArray, 0, mNumberOfSamples);
-            
-            for(int i = sampleToRemove+2, j = 0; i < 20; i++, j++) {
-                    outputToInFile[i] = tempArray[j];
-            }
-            
-            // Print RO line
-            outputToInFile[sampleToRemove+1] = "RO " + samples[sampleToRemove];
-            // Delete all instances of sample to be deleted before RO line
-            for (int i = 0; i < mNumberOfSamples; i++) 
+            // Remove mNumberOfSamplesToDelete number of samples
+            for (int samplesDeleted = 0; samplesDeleted < mNumberOfSamplesToDelete; samplesDeleted++)
             {
-            	if (outputToInFile[i] != null && outputToInFile[i].equals("A " + samples[sampleToRemove]))
+            	int sampleToRemove = (int )(Math.random() * mNumberOfSamples + 0);
+            	int randomLine = (int )(Math.random() * mNumberOfSamples + 0);
+            	
+            	if (samples[sampleToRemove] == null)
             	{
-            		outputToExpectedOut[i] = null;
-            		
-            		break;
+            		continue;
             	}
+            	
+            	String[] tempArray = new String[(mNumberOfSamples * 3) + 4];
+                
+                // Shift samples down by one then insert "RO sample"
+                System.arraycopy(outputToInFile, randomLine+1, tempArray, 0, mNumberOfSamples);
+                for(int i = randomLine+2, j = 0; i < outputToInFile.length; i++, j++) {
+                        outputToInFile[i] = tempArray[j];
+                }
+                // Print RO line
+                outputToInFile[randomLine+1] = "RO " + samples[sampleToRemove];
+                
+                // Reset count for deleted sample
+    			for (int j = 0; j < randomLine+1; j++)
+        		{
+        			if (samples[j] != null && samples[j].equals(samples[sampleToRemove]))
+        			{
+        				sampleInstances[j] = sampleInstances[j] - 1;
+        				outputToExpectedOut[j] = samples[j] + " | " + sampleInstances[j];
+        				
+        				if (sampleInstances[j] == 0) 
+        				{
+        					outputToExpectedOut[j] = null;
+        					
+        					break;
+        				}
+        			}
+        		}
+    			
+    			// Delete sample from our model
+    			samples[sampleToRemove] = null;
             }
-            // Reset count of possible new occurrences of deleted sample
-            int count = 0;
-			for (int j = sampleToRemove + 1; j < mNumberOfSamples; j++)
-    		{
-    			if (samples[j] != null && samples[j].equals(samples[sampleToRemove]))
-    			{
-    				sampleInstances[j] = ++count;
-    				outputToExpectedOut[j] = samples[j] + " | " + sampleInstances[j];
-    			}
-    		}
+            
+            // Random RA lines as well
+            for (int samplesDeleted = 0; samplesDeleted < mNumberOfSamplesToDelete/3; samplesDeleted++)
+            {
+            	int sampleToRemove = (int )(Math.random() * mNumberOfSamples + 0);
+            	int randomLine = (int )(Math.random() * mNumberOfSamples + 0);
+            	
+            	if (samples[sampleToRemove] == null)
+            	{
+            		continue;
+            	}
+            	
+            	String[] tempArray = new String[(mNumberOfSamples * 3) + 4];
+                
+                // Shift samples down by one then insert "RO sample"
+                System.arraycopy(outputToInFile, randomLine+1, tempArray, 0, mNumberOfSamples);
+                for(int i = randomLine+2, j = 0; i < outputToInFile.length; i++, j++) {
+                        outputToInFile[i] = tempArray[j];
+                }
+                // Print RO line
+                outputToInFile[randomLine+1] = "RA " + samples[sampleToRemove];
+                
+                // Reset count for deleted sample
+    			for (int j = 0; j < randomLine+1; j++)
+        		{
+        			if (samples[j] != null && samples[j].equals(samples[sampleToRemove]))
+        			{
+        				sampleInstances[j] = 0;
+        				outputToExpectedOut[j] = samples[j] + " | " + sampleInstances[j];
+        				
+        				if (sampleInstances[j] == 0) 
+        				{
+        					outputToExpectedOut[j] = null;
+        				}
+        			}
+        		}
+    			
+    			// Delete sample from our model
+    			samples[sampleToRemove] = null;
+            }
 
+            // Add a "P" line at the end
+            outputToInFile[(mNumberOfSamples * 2) + 1] = "P";
 
-
-            //            Put a Random search in the output file
+//            Put a Random search in the output file
             Random randomSearch = new Random();
             int randomIndexToSearch = randomSearch.nextInt(mNumberOfSamples - 1);
             String[] tempOutputArray = new String[outputToInFile.length];
 
+//            Makes sure that the sample is not null
+            while(samples[randomIndexToSearch] == null)
+                randomIndexToSearch = randomSearch.nextInt(mNumberOfSamples - 1);
+
+//            Add the search operation to the output array
             for(int i = 0; i < outputToInFile.length; i++)
             {
                 if(randomIndexToSearch == i)
@@ -147,9 +202,7 @@ public class DataGenerator {
 
                     for(int j = i; j < outputToInFile.length - 1; j++)
                     {
-//                        if(outputToInFile[j] == null)
-//                            continue;
-                            tempOutputArray[j + 1] = outputToInFile[j];
+                        tempOutputArray[j + 1] = outputToInFile[j];
                     }
                     break;
                 }
@@ -157,12 +210,50 @@ public class DataGenerator {
                 tempOutputArray[i] = outputToInFile[i];
             }
 
+//            Copy the temp array back to the outputToInFile array
             outputToInFile = tempOutputArray;
 
-            addSearchToSearchExpFileArray(outputToInFile, outputToSearch, samples[randomIndexToSearch]);
+//            Add the new search term to the expected output of the searchExp file
+            addSearchToSearchExpFileArray(outputToInFile, outputToSearch, samples[randomIndexToSearch], 0, 1);
 
-            
-            
+
+            //            Add the search operation to the output array
+            for(int i = 0; i < outputToInFile.length; i++)
+            {
+
+                if(outputToInFile[i] == null)
+                    continue;
+//                if(randomIndexToSearch == i)
+//                {
+//                    tempOutputArray[i] = outputToInFile[i];
+//                    tempOutputArray[i] = "S " + samples[i];
+//
+//                    for(int j = i; j < outputToInFile.length - 1; j++)
+//                    {
+//                        tempOutputArray[j + 1] = outputToInFile[j];
+//                    }
+//                    break;
+//                }
+
+                if (outputToInFile[i].equals("P"))
+                {
+                    i = i- 2;
+                        tempOutputArray[i] = "S " + samples[randomIndexToSearch];
+
+
+                        break;
+
+
+                }
+
+                //            Copy the temp array back to the outputToInFile array
+                outputToInFile = tempOutputArray;
+            }
+
+            //            Add the new search term to the expected output of the searchExp file
+            addSearchToSearchExpFileArray(outputToInFile, outputToSearch, samples[randomIndexToSearch], 1, 2);
+
+
             System.out.println("In File");
             for(String s : outputToInFile)
             {
@@ -207,11 +298,13 @@ public class DataGenerator {
 
     }
 
-    private static void addSearchToSearchExpFileArray(String[] outputToInFile, String[] outputToSearch, String sample) {
+    private static void addSearchToSearchExpFileArray(String[] outputToInFile, String[] outputToSearch, String sample, int index, int instanceNumber) {
 //        Number of instances counter
         int numberOfInstancesOfSampleBeforeSearch = 0;
 //        A string array to keep track of the operations that are performed on the selected object, in order
         String[] sequenceOfOpsOnSample = new String[outputToInFile.length];
+
+        int requiredInstanceNumber = 0;
 
 //        Loop through the output to in file array until the search function is found,
 //        then go back the other way to find the operations that happen to it
@@ -221,11 +314,17 @@ public class DataGenerator {
             if(outputToInFile[i] == null)
                 continue;
 
-//            if we found the Search statement for the sample we want, now go back the other way and get the operations
             if(outputToInFile[i].equals("S " + sample))
+                requiredInstanceNumber++;
+
+//            if we found the Search statement for the sample we want, now go back the other way and get the operations
+            if(outputToInFile[i].equals("S " + sample) && requiredInstanceNumber == instanceNumber)
             {
                 for(int j = i; j > -1; j--)
                 {
+                    if(outputToInFile[j] == null)
+                        continue;
+
                     if(outputToInFile[j].equals("A " + sample))
                     {
                         for(int k = 0; k < sequenceOfOpsOnSample.length; k++)
@@ -282,13 +381,16 @@ public class DataGenerator {
                 }
 
 //                Add to the outputToSearch file array
-                outputToSearch[0] = sample + " " + numberOfInstancesOfSampleBeforeSearch;
+                outputToSearch[index] = sample + " " + numberOfInstancesOfSampleBeforeSearch;
                 break;
             }
 
         }
     }
-
+    
+    
+    // Helper functions
+    
     private static boolean alreadyInOutput(String[] array, String string, int count, int pos) {
 		for (int i = 0; i < pos; i++)
         {
