@@ -42,6 +42,7 @@ public class MultisetTester
 		boolean bQuit = false;
 
 		PrintStream timing = new PrintStream("timing.out", "UTF-8");
+		timing.println(multiset);
 
 		// continue reading in commands until we either receive the quit signal or there are no more input commands
 		while (!bQuit && (line = inReader.readLine()) != null) {
