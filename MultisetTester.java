@@ -40,7 +40,11 @@ public class MultisetTester
 		String line;
 		int lineNum = 1;
 		boolean bQuit = false;
-		
+		long totalTimeSoFar = 0;
+
+		PrintStream timing = new PrintStream("timing.out", "UTF-8");
+		timing.println(multiset);
+
 		// continue reading in commands until we either receive the quit signal or there are no more input commands
 		while (!bQuit && (line = inReader.readLine()) != null) {
 			String[] tokens = line.split(" ");
@@ -58,7 +62,10 @@ public class MultisetTester
 				// add
 				case "A":
 					if (tokens.length == 2) {
+						long startTime = System.nanoTime();
 						multiset.add(tokens[1]);
+						totalTimeSoFar = totalTimeSoFar + (System.nanoTime() - startTime);
+						timing.println("Add: " + (System.nanoTime() - startTime));
 					}
 					else {
 						System.err.println(lineNum + ": not enough tokens.");
@@ -67,8 +74,11 @@ public class MultisetTester
 				// search
 				case "S":
 					if (tokens.length == 2) {
+						long startTime = System.nanoTime();
 						int foundNumber = multiset.search(tokens[1]);
 						searchOutWriter.println(tokens[1] + " " + foundNumber);
+						totalTimeSoFar = totalTimeSoFar + (System.nanoTime() - startTime);
+						timing.println("Search: " + (System.nanoTime() - startTime));
 					}
 					else {
 						// we print -1 to indicate error for automated testing
@@ -79,7 +89,10 @@ public class MultisetTester
 				// remove one instance
 				case "RO":
 					if (tokens.length == 2) {
+						long startTime = System.nanoTime();
 						multiset.removeOne(tokens[1]);
+						totalTimeSoFar = totalTimeSoFar + (System.nanoTime() - startTime);
+						timing.println("Remove One: " + (System.nanoTime() - startTime));
 					}
 					else {
 						System.err.println(lineNum + ": not enough tokens.");
@@ -88,7 +101,10 @@ public class MultisetTester
 				// remove all instances
 				case "RA":
 					if (tokens.length == 2) {
+						long startTime = System.nanoTime();
 						multiset.removeAll(tokens[1]);
+						totalTimeSoFar = totalTimeSoFar + (System.nanoTime() - startTime);
+						timing.println("Remove All: " + (System.nanoTime() - startTime));
 					}
 					else {
 						System.err.println(lineNum + ": not enough tokens.");
@@ -96,6 +112,7 @@ public class MultisetTester
 					break;		
 				// print
 				case "P":
+					timing.println("Total time so far: " + totalTimeSoFar);
 					multiset.print(outStream);
 					break;
 				// quit
